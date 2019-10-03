@@ -1,0 +1,16 @@
+images/classified/negative/*
+!images/classified/negative/0_test_5bad7sasweljku73.jpg
+images/classified/positive/*
+!images/classified/positive/1_test_4tz3kjldfj3482.jpg
+images/lovoo/
+images/top/
+images/unclassified/*
+!images/unclassified/test_4tz3kjldfj3482.jpg
+!images/unclassified/test_5bad7sasweljku73.jpg
+venv/
+images/tmp/run.jpg
+.idea/
+auto-lovoo.py
+tf/training_data/bottlenecks/negative/*
+tf/training_data/bottlenecks/positive/*
+tf/training_data/summaries/
