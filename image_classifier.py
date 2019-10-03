@@ -2,13 +2,8 @@ from os import listdir, rename
 from os.path import isfile, join
 import tkinter as tk
 from PIL import ImageTk, Image
-from time import sleep
-
-from auto_tinder import tinderAPI
 
 IMAGE_FOLDER = "./images/unclassified"
-token = "775bca6a-c861-448b-9a65-3db3f3970beb"
-api = tinderAPI(token)
 
 images = [f for f in listdir(IMAGE_FOLDER) if isfile(join(IMAGE_FOLDER, f))]
 unclassified_images = filter(lambda image: not (image.startswith("0_") or image.startswith("1_")), images)

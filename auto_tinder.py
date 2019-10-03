@@ -6,8 +6,6 @@ from random import random
 from likeliness_classifier import Classifier
 import person_detector
 import tensorflow as tf
-import os
-import matplotlib.pyplot as plt
 from time import time
 
 TINDER_URL = "https://api.gotinder.com"
@@ -19,7 +17,7 @@ class tinderAPI():
     def __init__(self, token):
         self._token = token
 
-    def profile(self, limit=10):
+    def profile(self):
         data = requests.get(TINDER_URL + "/v2/profile?include=account%2Cuser", headers={"X-Auth-Token": self._token}).json()
         return Profile(data["data"], self)
 
@@ -137,13 +135,6 @@ if __name__ == "__main__":
     token = "YOUR-API-TOKEN"
     api = tinderAPI(token)
 
-    # while True:
-    #     persons = api.nearby_persons()
-    #     for person in persons:
-    #         person.download_images(folder="./images/unclassified", sleep_max_for=random()*3)
-    #         sleep(random()*10)
-    #     sleep(random()*10)
-
     detection_graph = person_detector.open_graph()
     with detection_graph.as_default():
         with tf.Session() as sess:
@@ -191,40 +182,3 @@ if __name__ == "__main__":
 
 
     classifier.close()
-
-else:
-    pos = "G:/Github Repos/auto-tinder/images/classified/positive"
-    neg = "G:/Github Repos/auto-tinder/images/classified/negative"
-    pos_images = [f for f in os.listdir(pos) if os.path.isfile(os.path.join(pos, f))]
-    neg_images = [f for f in os.listdir(neg) if os.path.isfile(os.path.join(neg, f))]
-
-    pos_res = []
-    neg_res = []
-
-    print("--- POSITIVE ---")
-    for pos_img in pos_images[:500]:
-        img_path = os.path.join(pos, pos_img)
-        certainty = classifier.classify(img_path)
-        score = certainty["positive"]
-        print(score, img_path)
-        pos_res.append(score)
-
-    print("--- NEGATIVE ---")
-    for neg_img in neg_images[:500]:
-        img_path = os.path.join(neg, neg_img)
-        certainty = classifier.classify(img_path)
-        score = certainty["positive"]
-        print(score, img_path)
-        neg_res.append(score)
-
-    print("--- AVG ---")
-    print(sum(pos_res) / 500)
-    print(sum(neg_res) / 500)
-
-    plt.hist(pos_res, bins=30, range=(0, 1))
-    plt.title("Positive")
-    plt.show()
-
-    plt.hist(neg_res, bins=30, range=(0, 1))
-    plt.title("Negative")
-    plt.show()
