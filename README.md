@@ -3,7 +3,7 @@
 Auto-tinder was created to train an API using Tensorflow and Python3 that learns your
 interests in the other sex and automatically plays the tinder swiping-game for you.
 
-![alt text](https://raw.githubusercontent.com/joelbarmettlerUZH/auto-tinder/master/resources/banner.png)
+![alt text](https://github.com/joelbarmettlerUZH/auto-tinder/blob/master/resources//banner.png)
 
 In this document, I am going to explain the following steps that were needed to
 create auto-tinder:
@@ -425,6 +425,8 @@ We combat these challenges by:
 1. Converting our images to greyscale, to reduce the amount of information that our AI has to learn
 by a factor of 3 (RGB to G)
 2. Cutting out only the part of the image that actually contains the person, nothing else
+
+![alt text](https://github.com/joelbarmettlerUZH/auto-tinder/blob/master/resources//preprocessing.png)
 
 The first part is as easy as using Pillow to open up our image and convert it to greyscale.
 For the second part, we use the 
