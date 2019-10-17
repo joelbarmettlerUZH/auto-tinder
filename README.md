@@ -1,5 +1,7 @@
 # Auto-Tinder - Train an AI to swipe tinder for you
 
+de michi esch eifach super ! <3
+
 Auto-tinder was created to train an API using Tensorflow and Python3 that learns your
 interests in the other sex and automatically plays the tinder swiping-game for you.
 
@@ -18,22 +20,22 @@ in our image
 
 ## Step 0: Motivation and disclaimer
 
-Auto tinder is a concept project purely created for fun and educational purposes. 
+Auto tinder is a concept project purely created for fun and educational purposes.
 It shall never be abused to harm anybody or spam the platform. The auto-tinder scripts
-should not be used with your tinder profile since they surely violate tinders terms of service. 
+should not be used with your tinder profile since they surely violate tinders terms of service.
 
-I've written this piece of software mainly out of two reasons:
+I've written this piece of software mainly out of three reasons:
 
 1. Because I can and it was fun to create :)
 2. I wanted to find out whether an AI would actually be able to learn my
-preferences in the other sex and be a reliable left-right-swipe partner for me. 
-3. (Purely fictional reason: I am a lazy person, so why not invest 
-15 hours to code auto-tinder + 5 hours to label all images to save me a few hours of 
+preferences in the other sex and be a reliable left-right-swipe partner for me.
+3. (Purely fictional reason: I am a lazy person, so why not invest
+15 hours to code auto-tinder + 5 hours to label all images to save me a few hours of
 actually swiping tinder myself? Sounds like a good deal to me!)
 
 ## Step 1: Analyze the tinder API
-The first step is to find out how the tinder app communicates to tinders backend server. 
-Since tinder offers a web version of its portal, this is as easy as going to 
+The first step is to find out how the tinder app communicates to tinders backend server.
+Since tinder offers a web version of its portal, this is as easy as going to
 tinder.com, opening up chrome devtools and have a quick look at the network protocol.
 
 ![alt text](https://raw.githubusercontent.com/joelbarmettlerUZH/auto-tinder/master/resources/network_protocol.png)
@@ -42,8 +44,8 @@ The content shown in the picture above was from a request to [https://api.gotind
 is made when the tinder.com landing page is loading. Clearly, tinder has some sort
 of internal API that they are using to communicate between the front- and backend.
 
-With analyzing the content of */recs/core*, it becomes clear that this API endpoint returns a list of 
-user profiles of people nearby. 
+With analyzing the content of */recs/core*, it becomes clear that this API endpoint returns a list of
+user profiles of people nearby.
 
 The data includes (among many other fields), the following data:
 
@@ -138,13 +140,13 @@ The data includes (among many other fields), the following data:
         ]
     }
 }
-           
+
 ```
 
 A few things are very interesting here *(note that I changed all the data to not violate this persons privacy)*:
 
 - All images are publicly accessible. If you copy the image URL and open it in a private window, it still loads instantly - meaning that tinder
-uploads all user images publicly to the internet, free to be seen by anybody. 
+uploads all user images publicly to the internet, free to be seen by anybody.
 - The original photos accessible via the API are extremely high resolution. If you upload a photo to tinder, they will scale it down for the in-app
 usage, but they store the original version publicly on their servers, accessible by anybody.
 - Even if you choose to "show_gender_on_profile", everybody can still see your gender via the API *("gender": 1, where 1=Woman, 0=Man)*
@@ -155,7 +157,7 @@ With analyzing the content headers, we quickly find our private API Keys: **X-Au
 
 ![alt text](https://raw.githubusercontent.com/joelbarmettlerUZH/auto-tinder/master/resources/request.png)
 
-With copying this token and going over to Postman, we can validate that we can 
+With copying this token and going over to Postman, we can validate that we can
 indeed freely communicate with the tinder API with just the right URL and our auth token.
 
 ![alt text](https://raw.githubusercontent.com/joelbarmettlerUZH/auto-tinder/master/resources/postman.png)
@@ -175,14 +177,14 @@ With clicking a bit through tinders webapp, I quickly discover all relevant API 
 So let's get into the code. We will use the python [Requests](https://requests.kennethreitz.org/en/master/) library to communicate with
 the API and write an API wrapper class around it for convenience.
 
-Similarly, we write a small Person class that takes the API response from Tinder representing a Person and 
+Similarly, we write a small Person class that takes the API response from Tinder representing a Person and
 offers a few basic interfaces to the tinder API.
- 
- 
+
+
 Let's start with the Person Class. It shall receive API data, a tinder-api object and save all relevant data
 into instance variables. It shall further offer some basic features like "like" or "dislike" that make
 a request to the tinder-api, which allows us to conveniently use "some_person.like()" in order to like
-a profile we find interesting. 
+a profile we find interesting.
 
 ```python
 import datetime
@@ -264,7 +266,7 @@ class tinderAPI():
         return list(map(lambda user: Person(user["user"], self), data["data"]["results"]))
 ```
 
-We can now use the API to find people nearby and have a look at their profile, or even like all of them. 
+We can now use the API to find people nearby and have a look at their profile, or even like all of them.
 Replace YOUR-API-TOKEN with the X-Auth-Token you found in the chrome dev console earlier.
 
 ```python
@@ -279,11 +281,11 @@ if __name__ == "__main__":
             print(person)
             # person.like()
 ```
- 
+
 ## Step 3: Download images of people nearby
 
-Next, we want to automatically download some images of people nearby that we can use for training our AI. 
-With 'some', I mean like 1500-2500 images. 
+Next, we want to automatically download some images of people nearby that we can use for training our AI.
+With 'some', I mean like 1500-2500 images.
 
 First, let's extend our Person class with a function that allows us to download images.
 
@@ -309,7 +311,7 @@ PROF_FILE = "./images/unclassified/profiles.txt"
             sleep(random()*sleep_max_for)
 ```
 
-Note that I added some random sleeps here and there, just because we will likely be blocked if we 
+Note that I added some random sleeps here and there, just because we will likely be blocked if we
 spam the tinder CDN and download many pictures in just a few seconds.
 
 We write all the peoples profile IDs into a file called "profiles.txt". By first scanning the document
@@ -331,18 +333,18 @@ if __name__ == "__main__":
         sleep(random()*10)
 ```
 
-We can now simply start this script and let it run for a few hours to get a few hundret profile images of people 
-nearby. If you are a tinder PRO user, update your location now and then to get new people. 
+We can now simply start this script and let it run for a few hours to get a few hundret profile images of people
+nearby. If you are a tinder PRO user, update your location now and then to get new people.
 
 ## Step 4: Classify the images manually
 
-Now that we have a bunch of images to work with, let's build a really simple and ugly classifier. 
+Now that we have a bunch of images to work with, let's build a really simple and ugly classifier.
 
 It shall just loop over all the images in our "unclassified" folder and open the image in a GUI window.
 By right-clicking a person, we can mark the person as "dislike", while a left-click marks the person
 as "like". This will be represented in the filename later on: *4tz3kjldfj3482.jpg* will be renamed
 to *1_4tz3kjldfj3482.jpg* if we mark the image as "like", or *0_4tz3kjldfj3482.jpg* otherwise.
-The label like/dislike is encoded as 1/0 in the beginning of the filenmae. 
+The label like/dislike is encoded as 1/0 in the beginning of the filenmae.
 
 Let's use tkinter to write this GUI quickly:
 
@@ -406,19 +408,19 @@ We load all unclassified images into the "unclassified_images" list, open up a t
 by calling next_img() and resize the image to fit onto the screen. Then, we register two clicks, left-and right mouse buttons,
 and call the functions positive/negative that renames the images according to their label and show the next image.
 
-Ugly but effective. 
+Ugly but effective.
 
 ## Step 5: Develop a preprocessor to cut out only the person in our images
 
-For the next step, we need to bring our image data into a format that allows us to 
+For the next step, we need to bring our image data into a format that allows us to
 do a classification. There are a few difficulties we have to consider given our dataset.
 
 1. **Dataset Size:** Our Dataset is relatively small. We deal with +-2000 Images, which is considered
 a very low amount of data, given the complexity of them (RGB Images with high resolution)
 2. **Data Variance:** The pictures sometimes contain people from behind, sometimes only faces, sometimes
 no people at all.
-3. **Data Noise:** Most pictures not only contain the person itself, but often the surrounding which can 
-be distracting four our AI. 
+3. **Data Noise:** Most pictures not only contain the person itself, but often the surrounding which can
+be distracting four our AI.
 
 We combat these challenges by:
 
@@ -429,12 +431,12 @@ by a factor of 3 (RGB to G)
 ![alt text](https://github.com/joelbarmettlerUZH/auto-tinder/blob/master/resources//preprocessing.png)
 
 The first part is as easy as using Pillow to open up our image and convert it to greyscale.
-For the second part, we use the 
+For the second part, we use the
 [Tensorflow Object Detection API](https://github.com/tensorflow/models/tree/master/research/object_detection)
 with the mobilenet network architecture, pretrained on the coco dataset that also contains a label
 for "Person".
 
-Our script for person detection has four parts: 
+Our script for person detection has four parts:
 
 ### Part 1: Opening the pretrained mobilenet coco dataset as a Tensorflow graph
 
@@ -456,7 +458,7 @@ def open_graph():
 ```
 
 ### Part 2: Load in images as numpy arrays
-We use Pillow for image manipulation. Since tensorflow needs raw numpy arrays to work with the data, 
+We use Pillow for image manipulation. Since tensorflow needs raw numpy arrays to work with the data,
 let's write a small function that converts Pillow images to numpy arrays:
 
 ```python
@@ -471,8 +473,8 @@ def load_image_into_numpy_array(image):
 ### Part 3: Call object detection API
 
 The next function takes an image and a tensorflow graph, runs a tensorflow session using it
-and return all informations about the detected classes (object types), bounding boxes 
-and scores (certainty that the object was detected correctly). 
+and return all informations about the detected classes (object types), bounding boxes
+and scores (certainty that the object was detected correctly).
 
 ```python
 import numpy as np
@@ -526,7 +528,7 @@ def run_inference_for_single_image(image, sess):
 ### Part 4: Bringing it all together to find the person
 
 The last step is to write a function that takes an image path, opens it using Pillow,
-calls the object detection api interface and crops the image according to the 
+calls the object detection api interface and crops the image according to the
 detected persons bounding box.
 
 ```python
@@ -609,7 +611,7 @@ if __name__ == "__main__":
 ```
 
 Whenver we run this script, all labeled images are being processed and moved into corresponding
-subfolders in the "classified" directory. 
+subfolders in the "classified" directory.
 
 ## Step 6: Retrain inceptionv3 and write a classifier
 
@@ -623,11 +625,11 @@ python retrain.py --bottleneck_dir=tf/training_data/bottlenecks --model_dir=tf/t
 ```
 
 The learning takes roughly 15 minutes on a GTX 1080 ti, with a final accuracy of about 80% for my
-labeled dataset, but this heavily depends on the quality of your input data and your labeling. 
+labeled dataset, but this heavily depends on the quality of your input data and your labeling.
 
 The result of the training process is a retrained inceptionV3 model in the "tf/training_output/retrained_graph.pb"
 file. We must now write a Classifier class that efficiently uses the new weights in the tensorflow
-graph to make a classification prediction. 
+graph to make a classification prediction.
 
 Let's write a Classifier-Class that opens the graph as a session and offers a "classify" method
 with an image file that returns a dict with certainty values matching our labels "positive" and "negative".
@@ -635,7 +637,7 @@ with an image file that returns a dict with certainty values matching our labels
 The class takes as input both the path to the graph as well as the path to the label file, both
 sitting in our "tf/training_output/" folder. We develop helper functions for converting
 an image file to a tensor that we can feed into our graph, a helper function for loading the graph and
-labels and an important little function to close our graph after we are done using it. 
+labels and an important little function to close our graph after we are done using it.
 ```python
 import numpy as np
 import tensorflow as tf
@@ -741,18 +743,18 @@ instance to verify whether a given person should be liked or not.
 
 ```
 
-Now we have to bring all the puzzle pieces together. 
+Now we have to bring all the puzzle pieces together.
 
 First, let's initialize the tinder API with our api token. Then, we open up
 our classification tensorflow graph as a tensorflow session using our
-retrained graph and labels. Then, we fetch persons nearby and make a 
-likeliness prediction. 
+retrained graph and labels. Then, we fetch persons nearby and make a
+likeliness prediction.
 
 As a little bonus, I added a likeliness-multiplier of 1.2 if the person
-on Tinder goes to the same university as I do, so that I am more likely 
-to match with local students. 
+on Tinder goes to the same university as I do, so that I am more likely
+to match with local students.
 
-For all people that have a predicted likeliness score of 0.8, I call a like, 
+For all people that have a predicted likeliness score of 0.8, I call a like,
 for all the other a dislike.
 
 I developed the script to auto-play for the next 2 hours after it is started.
@@ -818,20 +820,20 @@ MIT License
 
 Copyright (c) 2018 Joel Barmettler
 
-Permission is hereby granted, free of charge, to any person obtaining a copy 
-of this software and associated documentation files (the "Software"), to deal 
-in the Software without restriction, including without limitation the rights 
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-copies of the Software, and to permit persons to whom the Software is furnished 
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished
 to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in 
+The above copyright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
