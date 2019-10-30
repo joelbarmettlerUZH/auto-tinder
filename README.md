@@ -1,7 +1,7 @@
 # Auto-Tinder - Train an AI to swipe tinder for you
 
 Auto-tinder was created to train an API using Tensorflow and Python3 that learns your
-interests in the other sex and automatically plays the tinder swiping-game for you.
+interests and automatically plays the tinder swiping-game for you.
 
 ![alt text](https://github.com/joelbarmettlerUZH/auto-tinder/blob/master/resources//banner.png)
 
