@@ -1,5 +1,5 @@
 geopy==1.20.0
 requests==2.22.0
-tensorflow==2.0.1
+tensorflow==2.0.3
 Pillow==6.2.1
 numpy==1.17.3
