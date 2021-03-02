@@ -1,5 +1,5 @@
 import numpy as np
-from object_detection.utils import ops as utils_ops
+from   object_detection.utils import ops as utils_ops
 import tensorflow as tf
 from PIL import Image
 

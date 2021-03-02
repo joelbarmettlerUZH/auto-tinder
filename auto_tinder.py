@@ -3,10 +3,9 @@ import datetime
 from geopy.geocoders import Nominatim
 from time import sleep
 from random import random
-from likeliness_classifier import Classifier
 import person_detector
-import tensorflow as tf
 from time import time
+import random
 
 TINDER_URL = "https://api.gotinder.com"
 geolocator = Nominatim(user_agent="auto-tinder")
@@ -26,6 +25,8 @@ class tinderAPI():
         return list(map(lambda match: Person(match["person"], self), data["data"]["matches"]))
 
     def like(self, user_id):
+        print("like user {0}".format(user_id)) 
+        time.sleep(1)
         data = requests.get(TINDER_URL + f"/like/{user_id}", headers={"X-Auth-Token": self._token}).json()
         return {
             "is_match": data["match"],
@@ -33,6 +34,8 @@ class tinderAPI():
         }
 
     def dislike(self, user_id):
+        print("pass user {0}".format(user_id)) 
+        time.sleep(1)
         requests.get(TINDER_URL + f"/pass/{user_id}", headers={"X-Auth-Token": self._token}).json()
         return True
 
@@ -92,28 +95,6 @@ class Person(object):
                     f.write(req.content)
             sleep(random()*sleep_max_for)
 
-    def predict_likeliness(self, classifier, sess):
-        ratings = []
-        for image in self.images:
-            req = requests.get(image, stream=True)
-            tmp_filename = f"./images/tmp/run.jpg"
-            if req.status_code == 200:
-                with open(tmp_filename, "wb") as f:
-                    f.write(req.content)
-            img = person_detector.get_person(tmp_filename, sess)
-            if img:
-                img = img.convert('L')
-                img.save(tmp_filename, "jpeg")
-                certainty = classifier.classify(tmp_filename)
-                pos = certainty["positive"]
-                ratings.append(pos)
-        ratings.sort(reverse=True)
-        ratings = ratings[:5]
-        if len(ratings) == 0:
-            return 0.001
-        return ratings[0]*0.6 + sum(ratings[1:])/len(ratings[1:])*0.4
-
-
 
 class Profile(Person):
 
@@ -131,54 +112,37 @@ class Profile(Person):
         self.gender_filter = ["Male", "Female"][data["user"]["gender_filter"]]
 
 
+# add desicion making algo
+def predict_likeliness(person):
+    return random.uniform(0, 1)
+
+
 if __name__ == "__main__":
-    token = "YOUR-API-TOKEN"
+    token = "ad8131ee-c9fb-4f9e-89c8-7098a8c57277"
     api = tinderAPI(token)
+    count = 1  
+    while count < 10:
+        try:
+            print(f"count: {count} min -----")
+            persons = api.nearby_persons()
+            
+            for person in persons:
+                score = predict_likeliness(person)                    
 
-    detection_graph = person_detector.open_graph()
-    with detection_graph.as_default():
-        with tf.Session() as sess:
+                print("-------------------------")
+                print("ID: ", person.id)
+                print("Name: ", person.name)                
+                print("Images: ", person.images)
+                print(score)
 
-            classifier = Classifier(graph="./tf/training_output/retrained_graph.pb",
-                                    labels="./tf/training_output/retrained_labels.txt")
-
-            end_time = 1568992917 + 60*60*2.8
-            while time() < end_time:
-                try:
-                    print(f"------ TIME LEFT: {(end_time - time())/60} min -----")
-                    persons = api.nearby_persons()
-                    pos_schools = ["Universität Zürich", "University of Zurich", "UZH", "HWZ Hochschule für Wirtschaft Zürich",
-                                   "ETH Zürich", "ETH Zurich", "ETH", "ETHZ", "Hochschule Luzern", "HSLU", "ZHAW",
-                                   "Zürcher Hochschule für Angewandte Wissenschaften", "Universität Bern", "Uni Bern",
-                                   "PHLU", "PH Luzern", "Fachhochschule Luzern", "Eidgenössische Technische Hochschule Zürich"]
-
-                    for person in persons:
-                        score = person.predict_likeliness(classifier, sess)
-
-                        for school in pos_schools:
-                            if school in person.schools:
-                                print()
-                                score *= 1.2
-
-                        print("-------------------------")
-                        print("ID: ", person.id)
-                        print("Name: ", person.name)
-                        print("Schools: ", person.schools)
-                        print("Images: ", person.images)
-                        print(score)
-
-                        if score > 0.8:
-                            res = person.like()
-                            print("LIKE")
-                            print("Response: ", res)
-                        else:
-                            res = person.dislike()
-                            print("DISLIKE")
-                            print("Response: ", res)
-                except Exception:
-                    pass
-
-
-
-
-    classifier.close()
+                if score > 0.35:
+                    res = person.like()
+                    print("LIKE")
+                    print("Response: ", res)
+                else:
+                    res = person.dislike()
+                    print("DISLIKE")
+                    print("Response: ", res)
+        except Exception:
+            print("Error")
+            pass
