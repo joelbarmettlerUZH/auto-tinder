@@ -1,0 +1,27 @@
+
+
+Day 1:
+* authentication and retry with fb token
+* log
+* download profile picture
+*
+
+Day 2:
+* train ai model and make decision accordingly
+
+
+api interface
+   token_use/token refetch/token store 
+   get_profile
+   like
+   dislike
+   download_images
+
+api_tinder/api_bumble
+
+
+person
+    name
+    image
+    save_image
+

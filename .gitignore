@@ -15,3 +15,4 @@ tf/training_data/bottlenecks/negative/*
 tf/training_data/bottlenecks/positive/*
 tf/training_data/summaries/
 env*/
+token-history

@@ -11,10 +11,31 @@ TINDER_URL = "https://api.gotinder.com"
 geolocator = Nominatim(user_agent="auto-tinder")
 PROF_FILE = "./images/unclassified/profiles.txt"
 
+
+# api interface
+
 class tinderAPI():
 
     def __init__(self, token):
         self._token = token
+
+    def like(self, user_id):
+        print("like user {0}".format(user_id))
+        data = requests.get(TINDER_URL + f"/like/{user_id}", headers={"X-Auth-Token": self._token}).json()
+        return {
+            "is_match": data["match"],
+            "liked_remaining": data["likes_remaining"]
+        }
+
+    def dislike(self, user_id):
+        print("pass user {0}".format(user_id))        
+        requests.get(TINDER_URL + f"/pass/{user_id}", headers={"X-Auth-Token": self._token}).json()
+        return True
+
+    def nearby_persons(self):
+        data = requests.get(TINDER_URL + "/v2/recs/core", headers={"X-Auth-Token": self._token}).json()
+        var name = data["_id"]
+        return list(map(lambda user: Person(user["user"], self), data["data"]["results"]))
 
     def profile(self):
         data = requests.get(TINDER_URL + "/v2/profile?include=account%2Cuser", headers={"X-Auth-Token": self._token}).json()
@@ -24,62 +45,43 @@ class tinderAPI():
         data = requests.get(TINDER_URL + f"/v2/matches?count={limit}", headers={"X-Auth-Token": self._token}).json()
         return list(map(lambda match: Person(match["person"], self), data["data"]["matches"]))
 
-    def like(self, user_id):
-        print("like user {0}".format(user_id)) 
-        time.sleep(1)
-        data = requests.get(TINDER_URL + f"/like/{user_id}", headers={"X-Auth-Token": self._token}).json()
-        return {
-            "is_match": data["match"],
-            "liked_remaining": data["likes_remaining"]
-        }
-
-    def dislike(self, user_id):
-        print("pass user {0}".format(user_id)) 
-        time.sleep(1)
-        requests.get(TINDER_URL + f"/pass/{user_id}", headers={"X-Auth-Token": self._token}).json()
-        return True
-
-    def nearby_persons(self):
-        data = requests.get(TINDER_URL + "/v2/recs/core", headers={"X-Auth-Token": self._token}).json()
-        return list(map(lambda user: Person(user["user"], self), data["data"]["results"]))
-
+   
 
 class Person(object):
 
-    def __init__(self, data, api):
+    def __init__(self, data, api, id, name, photo_urls):
         self._api = api
 
         self.id = data["_id"]
         self.name = data.get("name", "Unknown")
-
-        self.bio = data.get("bio", "")
-        self.distance = data.get("distance_mi", 0) / 1.60934
-
-        self.birth_date = datetime.datetime.strptime(data["birth_date"], '%Y-%m-%dT%H:%M:%S.%fZ') if data.get(
-            "birth_date", False) else None
-        self.gender = ["Male", "Female", "Unknown"][data.get("gender", 2)]
-
         self.images = list(map(lambda photo: photo["url"], data.get("photos", [])))
 
-        self.jobs = list(
-            map(lambda job: {"title": job.get("title", {}).get("name"), "company": job.get("company", {}).get("name")}, data.get("jobs", [])))
-        self.schools = list(map(lambda school: school["name"], data.get("schools", [])))
+    # self.bio = data.get("bio", "")
+    # self.distance = data.get("distance_mi", 0) / 1.60934
 
-        if data.get("pos", False):
-            self.location = geolocator.reverse(f'{data["pos"]["lat"]}, {data["pos"]["lon"]}')
+    # self.birth_date = datetime.datetime.strptime(data["birth_date"], '%Y-%m-%dT%H:%M:%S.%fZ') if data.get(
+    #     "birth_date", False) else None
+    # self.gender = ["Male", "Female", "Unknown"][data.get("gender", 2)]
 
+    
 
-    def __repr__(self):
-        return f"{self.id}  -  {self.name} ({self.birth_date.strftime('%d.%m.%Y')})"
+    # self.jobs = list(
+    #     map(lambda job: {"title": job.get("title", {}).get("name"), "company": job.get("company", {}).get("name")}, data.get("jobs", [])))
+    # self.schools = list(map(lambda school: school["name"], data.get("schools", [])))
 
+    # if data.get("pos", False):
+    #     self.location = geolocator.reverse(f'{data["pos"]["lat"]}, {data["pos"]["lon"]}')
 
-    def like(self):
+# def __repr__(self):
+#     return f"{self.id}  -  {self.name} ({self.birth_date.strftime('%d.%m.%Y')})"
+    
+    def like(self):        
         return self._api.like(self.id)
 
     def dislike(self):
         return self._api.dislike(self.id)
 
-    def download_images(self, folder=".", sleep_max_for=0):
+    def download_images(self, folder="./images/raw", sleep_max_for=0):
         with open(PROF_FILE, "r") as f:
             lines = f.readlines()
             if self.id in lines:
@@ -91,7 +93,8 @@ class Person(object):
             index += 1
             req = requests.get(image_url, stream=True)
             if req.status_code == 200:
-                with open(f"{folder}/{self.id}_{self.name}_{index}.jpeg", "wb") as f:
+                file_full_path = f"{folder}/{self.id}_{self.name}_{index}.jpeg"
+                with open( file_full_path, "wb") as f:
                     f.write(req.content)
             sleep(random()*sleep_max_for)
 
@@ -102,14 +105,14 @@ class Profile(Person):
 
         super().__init__(data["user"], api)
 
-        self.email = data["account"].get("email")
-        self.phone_number = data["account"].get("account_phone_number")
+        # self.email = data["account"].get("email")
+        # self.phone_number = data["account"].get("account_phone_number")
 
-        self.age_min = data["user"]["age_filter_min"]
-        self.age_max = data["user"]["age_filter_max"]
+        # self.age_min = data["user"]["age_filter_min"]
+        # self.age_max = data["user"]["age_filter_max"]
 
         self.max_distance = data["user"]["distance_filter"]
-        self.gender_filter = ["Male", "Female"][data["user"]["gender_filter"]]
+        # self.gender_filter = ["Male", "Female"][data["user"]["gender_filter"]]
 
 
 # add desicion making algo
@@ -118,15 +121,19 @@ def predict_likeliness(person):
 
 
 if __name__ == "__main__":
-    token = "ad8131ee-c9fb-4f9e-89c8-7098a8c57277"
+    token = "145773e4-4e44-4a59-8d94-ac577f8d0dcf"
     api = tinderAPI(token)
     count = 1  
+
+    time.sleep(random.uniform(0, 1) * 3)
+
     while count < 10:
         try:
             print(f"count: {count} min -----")
             persons = api.nearby_persons()
-            
-            for person in persons:
+            print(f"count: {len(persons)} min -----")
+
+            for person in persons:                
                 score = predict_likeliness(person)                    
 
                 print("-------------------------")
@@ -135,6 +142,7 @@ if __name__ == "__main__":
                 print("Images: ", person.images)
                 print(score)
 
+                time.sleep(random.uniform(0, 1) * 3)
                 if score > 0.35:
                     res = person.like()
                     print("LIKE")

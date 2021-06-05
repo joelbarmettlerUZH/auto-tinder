@@ -1,0 +1,27 @@
+# https://sketchviz.com/new
+
+
+digraph {
+  node [ fontname="Handlee" ];
+  subgraph cluster_source {
+    label="*Fetch Profiles*";
+    Get_token;
+    Get_profiles;
+  }
+      
+  subgraph cluster_yes_or_no {
+    label="*Yes or No*";
+    Run_judgement;
+  }
+
+  subgraph cluster_execute_feedback {
+    label="*Execute_feedback*";
+    Wait_random_time;
+    Execute_feedback;
+  }       
+
+  Get_token ->  Get_profiles; 
+  Get_profiles -> Run_judgement;
+  Run_judgement -> Wait_random_time;
+  Wait_random_time -> Execute_feedback;
+}
