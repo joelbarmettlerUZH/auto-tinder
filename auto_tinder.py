@@ -1,14 +1,17 @@
 import requests
 import datetime
-from geopy.geocoders import Nominatim
+# from geopy.geocoders import Nominatim
 from time import sleep
 from random import random
 import person_detector
 from time import time
 import random
+import logging
+import datetime
+
 
 TINDER_URL = "https://api.gotinder.com"
-geolocator = Nominatim(user_agent="auto-tinder")
+# geolocator = Nominatim(user_agent="auto-tinder")
 PROF_FILE = "./images/unclassified/profiles.txt"
 
 
@@ -18,6 +21,7 @@ class tinderAPI():
 
     def __init__(self, token):
         self._token = token
+        self.name = "tinderAPI"
 
     def like(self, user_id):
         print("like user {0}".format(user_id))
@@ -32,16 +36,22 @@ class tinderAPI():
         requests.get(TINDER_URL + f"/pass/{user_id}", headers={"X-Auth-Token": self._token}).json()
         return True
             
-    def map_user_to_person(user, api):
+    def map_user_to_person(self, user, api):
         id = user["_id"]
         name =  user["name"]
         photo_urls = list(map(lambda photo: photo["url"], user["photos"]))
-        return Person(api, id, name, photo_urls)    
+        return Person(api, id, name, photo_urls)  
 
     def nearby_persons(self):
         data = requests.get(TINDER_URL + "/v2/recs/core", headers={"X-Auth-Token": self._token}).json()
         users = data["data"]["results"]
-        return list(map(lambda user: map_user_to_person(user, self), users))
+        # persons = list(map(lambda user: self.map_user_to_person(user["user"], self), users))
+        persons = []
+        for user in users:
+                person = self.map_user_to_person(user["user"], self)
+                persons.append(person)
+                
+        return persons
 
 
     def profile(self):
@@ -132,13 +142,24 @@ if __name__ == "__main__":
     api = tinderAPI(token)
     count = 1  
 
-    time.sleep(random.uniform(0, 1) * 3)
+    # sleep(random.uniform(0, 1) * 3)
 
-    while count < 10:
-        try:
-            print(f"count: {count} min -----")
+    datestr = datetime.date.today().strftime("%Y%m%d")
+    logfile = f"/home/michael/Developement/dating-robot/auto-tinder-log/auto_tinder_{datestr}.log"
+
+    logging.basicConfig(filename=logfile, filemode = 'a', level=logging.DEBUG, format = '%(asctime)s - %(levelname)s: %(message)s',\
+                     datefmt = '%m/%d/%Y %I:%M:%S %p' )
+
+    # logging.debug('This message should go to the log file')
+    logging.info('start')
+    # logging.warning('And this, too')
+    # logging.error('And non-ASCII stuff, too, like Øresund and Malmö')
+
+    while count < 10:        
+            # print(f"count: {count} min -----")
             persons = api.nearby_persons()
-            print(f"count: {len(persons)} min -----")
+            # print(f"count: {len(persons)} min -----")
+            logging.info(f"Get new profiles. counts: {len(persons)} ")
 
             for person in persons:                
                 score = predict_likeliness(person)                    
@@ -149,15 +170,20 @@ if __name__ == "__main__":
                 print("Images: ", person.images)
                 print(score)
 
-                time.sleep(random.uniform(0, 1) * 3)
-                if score > 0.35:
-                    res = person.like()
-                    print("LIKE")
-                    print("Response: ", res)
-                else:
-                    res = person.dislike()
-                    print("DISLIKE")
-                    print("Response: ", res)
-        except Exception:
-            print("Error")
-            pass
+                sleep(random.uniform(0, 1) * 8)
+                try:
+                    if score > 0.35:                        
+                        logging.info(f"Liked person: {person.id}")
+                        res = person.like()
+                        # print("LIKE")
+                        # print("Response: ", res)
+                    else:
+                        logging.info(f"Passed person: {person.id}")
+                        res = person.dislike()
+                        # print("DISLIKE")
+                        # print("Response: ", res)
+                except Exception:
+                    logging.error(f'Can not submit judgement to {person.api.name}')    
+
+                count = count + 1
+          
