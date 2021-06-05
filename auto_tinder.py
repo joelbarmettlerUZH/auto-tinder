@@ -31,11 +31,18 @@ class tinderAPI():
         print("pass user {0}".format(user_id))        
         requests.get(TINDER_URL + f"/pass/{user_id}", headers={"X-Auth-Token": self._token}).json()
         return True
+            
+    def map_user_to_person(user, api):
+        id = user["_id"]
+        name =  user["name"]
+        photo_urls = list(map(lambda photo: photo["url"], user["photos"]))
+        return Person(api, id, name, photo_urls)    
 
     def nearby_persons(self):
         data = requests.get(TINDER_URL + "/v2/recs/core", headers={"X-Auth-Token": self._token}).json()
-        var name = data["_id"]
-        return list(map(lambda user: Person(user["user"], self), data["data"]["results"]))
+        users = data["data"]["results"]
+        return list(map(lambda user: map_user_to_person(user, self), users))
+
 
     def profile(self):
         data = requests.get(TINDER_URL + "/v2/profile?include=account%2Cuser", headers={"X-Auth-Token": self._token}).json()
@@ -49,12 +56,12 @@ class tinderAPI():
 
 class Person(object):
 
-    def __init__(self, data, api, id, name, photo_urls):
+    def __init__(self, api, id, name, photo_urls):
         self._api = api
 
-        self.id = data["_id"]
-        self.name = data.get("name", "Unknown")
-        self.images = list(map(lambda photo: photo["url"], data.get("photos", [])))
+        self.id = id
+        self.name = name
+        self.images = photo_urls
 
     # self.bio = data.get("bio", "")
     # self.distance = data.get("distance_mi", 0) / 1.60934
