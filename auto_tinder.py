@@ -184,7 +184,7 @@ if __name__ == "__main__":
             sleep(random.uniform(0, 1) * 8)
             person.download_images()
             try:
-                if score > 0.35:                        
+                if score > 0.4:                        
                     logging.info(f"Liked person: {person.id}")
                     res = person.like()
                     # print("LIKE")
