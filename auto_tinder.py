@@ -8,12 +8,15 @@ from time import time
 import random
 import logging
 import datetime
+import urllib.request
+import os
+
 
 
 TINDER_URL = "https://api.gotinder.com"
 # geolocator = Nominatim(user_agent="auto-tinder")
 PROF_FILE = "./images/unclassified/profiles.txt"
-
+IMAGE_DOWNLOAD_FOLDER = "/home/michael/Developement/dating-robot/auto-tinder-images/"
 
 # api interface
 
@@ -98,22 +101,29 @@ class Person(object):
     def dislike(self):
         return self._api.dislike(self.id)
 
-    def download_images(self, folder="./images/raw", sleep_max_for=0):
-        with open(PROF_FILE, "r") as f:
-            lines = f.readlines()
-            if self.id in lines:
-                return
-        with open(PROF_FILE, "a") as f:
-            f.write(self.id+"\r\n")
-        index = -1
-        for image_url in self.images:
-            index += 1
-            req = requests.get(image_url, stream=True)
-            if req.status_code == 200:
-                file_full_path = f"{folder}/{self.id}_{self.name}_{index}.jpeg"
-                with open( file_full_path, "wb") as f:
-                    f.write(req.content)
-            sleep(random()*sleep_max_for)
+    def download_images(self):
+        # with open(PROF_FILE, "r") as f:
+        #     lines = f.readlines()
+        #     if self.id in lines:
+        #         return
+        # with open(PROF_FILE, "a") as f:
+        #     f.write(self.id+"\r\n")
+        # index = -1
+        # for image_url in self.images:
+        #     index += 1
+        #     req = requests.get(image_url, stream=True)
+        #     if req.status_code == 200:
+        #         file_full_path = f"{folder}/{self.id}_{self.name}_{index}.jpeg"
+        #         with open( file_full_path, "wb") as f:
+        #             f.write(req.content)
+        #     sleep(random()*sleep_max_for)
+        url = self.images[0]
+        file_full_path = f"{IMAGE_DOWNLOAD_FOLDER}/{self.id}_{self.name}_0.jpeg"
+        is_existed = os.path.isfile(file_full_path)
+        if(is_existed):
+            file_full_path = f"{IMAGE_DOWNLOAD_FOLDER}/{self.id}_{self.name}_1.jpeg"
+        urllib.request.urlretrieve(url,file_full_path)
+        sleep(random.uniform(0, 1))
 
 
 class Profile(Person):
@@ -140,7 +150,8 @@ def predict_likeliness(person):
 if __name__ == "__main__":
     token = "145773e4-4e44-4a59-8d94-ac577f8d0dcf"
     api = tinderAPI(token)
-    count = 1  
+    batch_count = 0 
+    person_count = 0
 
     # sleep(random.uniform(0, 1) * 3)
 
@@ -155,35 +166,42 @@ if __name__ == "__main__":
     # logging.warning('And this, too')
     # logging.error('And non-ASCII stuff, too, like Øresund and Malmö')
 
-    while count < 10:        
-            # print(f"count: {count} min -----")
-            persons = api.nearby_persons()
-            # print(f"count: {len(persons)} min -----")
-            logging.info(f"Get new profiles. counts: {len(persons)} ")
+    while batch_count < 5:        
+            
+        persons = api.nearby_persons()
+        print(f"--------------------------------Batch: {batch_count}. Get new profiles. batch_counts: {len(persons)} -------------------------")
+        logging.info(f"Batch: {batch_count}. Get new profiles. batch_counts: {len(persons)} ")
 
-            for person in persons:                
-                score = predict_likeliness(person)                    
+        for person in persons:                
+            score = predict_likeliness(person)                    
 
-                print("-------------------------")
-                print("ID: ", person.id)
-                print("Name: ", person.name)                
-                print("Images: ", person.images)
-                print(score)
+            print("-------------------------")
+            print("ID: ", person.id)
+            print("Name: ", person.name)                
+            print("Images: ", person.images[0])
+            print("Score:", score)
 
-                sleep(random.uniform(0, 1) * 8)
-                try:
-                    if score > 0.35:                        
-                        logging.info(f"Liked person: {person.id}")
-                        res = person.like()
-                        # print("LIKE")
-                        # print("Response: ", res)
-                    else:
-                        logging.info(f"Passed person: {person.id}")
-                        res = person.dislike()
-                        # print("DISLIKE")
-                        # print("Response: ", res)
-                except Exception:
-                    logging.error(f'Can not submit judgement to {person.api.name}')    
+            sleep(random.uniform(0, 1) * 8)
+            person.download_images()
+            try:
+                if score > 0.35:                        
+                    logging.info(f"Liked person: {person.id}")
+                    res = person.like()
+                    # print("LIKE")
+                    # print("Response: ", res)
+                else:
+                    logging.info(f"Passed person: {person.id}")
+                    res = person.dislike()
+                    # print("DISLIKE")
+                    # print("Response: ", res)
+            except Exception:
+                logging.error(f'Can not submit judgement to {person.api.name}')    
 
-                count = count + 1
+            person_count = person_count + 1     
+
+        batch_count = batch_count + 1
+
+    print(f'success proccessed profiles: {person_count}')    
+    logging.info(f'success proccessed profiles: {person_count}')    
+
           
