@@ -17,7 +17,7 @@ TINDER_URL = "https://api.gotinder.com"
 # geolocator = Nominatim(user_agent="auto-tinder")
 PROF_FILE = "./images/unclassified/profiles.txt"
 IMAGE_DOWNLOAD_FOLDER = "/home/michael/Developement/dating-robot/auto-tinder-images/"
-
+token = "b6887131-9660-4d20-ab87-3f49c993d5f1"
 # api interface
 
 class tinderAPI():
@@ -148,7 +148,7 @@ def predict_likeliness(person):
 
 
 if __name__ == "__main__":
-    token = "145773e4-4e44-4a59-8d94-ac577f8d0dcf"
+    
     api = tinderAPI(token)
     batch_count = 0 
     person_count = 0
