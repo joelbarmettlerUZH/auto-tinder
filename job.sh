@@ -2,7 +2,7 @@ UseRandomSleep=$1
 
 echo "param 1: $UseRandomSleep"
 
-if $UseRandomSleep==yes 
+if ["$UseRandomSleep"=="yes"] 
 then
     SleepTime=$(shuf -i 0-300 -n 1)
     echo "sleep for $SleepTime seconds"
