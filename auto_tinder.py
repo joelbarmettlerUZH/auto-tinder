@@ -13,7 +13,7 @@ import os
 
 
 
-TINDER_URL = "https://api.gotinder.com"
+
 # geolocator = Nominatim(user_agent="auto-tinder")
 PROF_FILE = "./images/unclassified/profiles.txt"
 IMAGE_DOWNLOAD_FOLDER = "/home/michael/Developement/dating-robot/auto-tinder-images/"
@@ -21,14 +21,16 @@ token = "b6887131-9660-4d20-ab87-3f49c993d5f1"
 # api interface
 
 class tinderAPI():
-
-    def __init__(self, token):
+    
+    def __init__(self, token, logging):
         self._token = token
         self.name = "tinderAPI"
+        self.logging = logging
+        self.TINDER_URL = "https://api.gotinder.com"
 
     def like(self, user_id):
         print("like user {0}".format(user_id))
-        data = requests.get(TINDER_URL + f"/like/{user_id}", headers={"X-Auth-Token": self._token}).json()
+        data = requests.get(self.TINDER_URL + f"/like/{user_id}", headers={"X-Auth-Token": self._token}).json()
         return {
             "is_match": data["match"],
             "liked_remaining": data["likes_remaining"]
@@ -36,7 +38,7 @@ class tinderAPI():
 
     def dislike(self, user_id):
         print("pass user {0}".format(user_id))        
-        requests.get(TINDER_URL + f"/pass/{user_id}", headers={"X-Auth-Token": self._token}).json()
+        requests.get(self.TINDER_URL + f"/pass/{user_id}", headers={"X-Auth-Token": self._token}).json()
         return True
             
     def map_user_to_person(self, user, api):
@@ -45,8 +47,8 @@ class tinderAPI():
         photo_urls = list(map(lambda photo: photo["url"], user["photos"]))
         return Person(api, id, name, photo_urls)  
 
-    def nearby_persons(self):
-        data = requests.get(TINDER_URL + "/v2/recs/core", headers={"X-Auth-Token": self._token}).json()
+    def nearby_persons_raw(self):
+        data = requests.get(self.TINDER_URL + "/v2/recs/core", headers={"X-Auth-Token": self._token}).json()
         users = data["data"]["results"]
         # persons = list(map(lambda user: self.map_user_to_person(user["user"], self), users))
         persons = []
@@ -56,6 +58,25 @@ class tinderAPI():
                 
         return persons
 
+    def nearby_persons(self):
+        try:
+            persons = self.nearby_persons_raw()
+            return persons
+        except Exception as e:
+            print("auth failure") 
+            logging.error("Auth fail. Try getting token from Fb")   
+            # getApiTokenUsingFbToken()
+            # persons = self.nearby_persons_raw()
+            # return persons
+            
+
+    def getApiTokenUsingFbToken(self, facebook_id, facebook_token):
+        data = {"facebook_id": str(facebook_id), "facebook_token": facebook_token}
+        result = self._session.post(
+            self._full_url('/auth'), json=data, proxies=self._proxies).json()
+        if 'token' not in result:
+            raise Exception("Couldn't authenticate")
+        self._token = result['token']
 
     def profile(self):
         data = requests.get(TINDER_URL + "/v2/profile?include=account%2Cuser", headers={"X-Auth-Token": self._token}).json()
@@ -149,7 +170,7 @@ def predict_likeliness(person):
 
 if __name__ == "__main__":
     
-    api = tinderAPI(token)
+    
     batch_count = 0 
     person_count = 0
 
@@ -166,6 +187,8 @@ if __name__ == "__main__":
     # logging.warning('And this, too')
     # logging.error('And non-ASCII stuff, too, like Øresund and Malmö')
 
+    api = tinderAPI(token,logging)
+    
     while batch_count < 5:        
             
         persons = api.nearby_persons()
