@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     detection_graph = person_detector.open_graph()
     with detection_graph.as_default():
-        with tf.Session() as sess:
+        with tf.compat.v1.Session() as sess:
 
             classifier = Classifier(graph="./tf/training_output/retrained_graph.pb",
                                     labels="./tf/training_output/retrained_labels.txt")

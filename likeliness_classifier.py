@@ -10,7 +10,7 @@ class Classifier():
         self._input_operation = self._graph.get_operation_by_name("import/Placeholder")
         self._output_operation = self._graph.get_operation_by_name("import/final_result")
 
-        self._session = tf.Session(graph=self._graph)
+        self._session = tf.compat.v1.Session(graph=self._graph)
 
     def classify(self, file_name):
         t = self.read_tensor_from_image_file(file_name)
@@ -36,7 +36,7 @@ class Classifier():
     @staticmethod
     def load_graph(model_file):
         graph = tf.Graph()
-        graph_def = tf.GraphDef()
+        graph_def = tf.compat.v1.GraphDef()
         with open(model_file, "rb") as f:
             graph_def.ParseFromString(f.read())
         with graph.as_default():
@@ -46,7 +46,7 @@ class Classifier():
     @staticmethod
     def load_labels(label_file):
         label = []
-        proto_as_ascii_lines = tf.gfile.GFile(label_file).readlines()
+        proto_as_ascii_lines = tf.compat.v2.io.gfile.GFile(label_file).readlines()
         for l in proto_as_ascii_lines:
             label.append(l.rstrip())
         return label
